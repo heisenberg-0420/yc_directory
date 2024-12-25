@@ -5,11 +5,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import React, { Suspense } from 'react';
-import markdownit from 'markdown-it';
 import { Skeleton } from '@/components/ui/skeleton';
 import View from '@/components/View';
+import { remark } from 'remark';
+import html from 'remark-html';
 
-const md = markdownit();
 export const experimental_ppr = true;
 
 const StartupDetails = async({params}: { params: Promise<{id: string}>}) => {
@@ -18,7 +18,11 @@ const StartupDetails = async({params}: { params: Promise<{id: string}>}) => {
 	const post = await client.fetch(STARTUP_BY_ID_QUERY, {id});
 	if (!post) return notFound();
 
-	const parsedContent = md.render(post?.pitch || "");
+	const processedContent = await remark()
+		.use(html)
+		.process(post?.pitch || "");
+	const parsedContent = processedContent.toString();
+
 	return (
 		<>
 			<section className='pink_container !min-h-[230px]'>

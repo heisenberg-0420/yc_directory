@@ -7,15 +7,27 @@ export const formSchema = z.object({
 	pitch: z.string().min(10),
 	link: z.string().url().refine(async (url) => {
 		try {
-			const res = await fetch(url, {mode: 'cors', method: 'HEAD', headers: {'Access-Control-Allow-Origin': '*'}});
-			const contentType = res.headers.get("content-type");
-			return contentType?.startsWith('image/');
+			const res = await fetch("/api/checkImage", {
+				method: 'POST',
+				body: JSON.stringify({ url }),
+				headers: { 'Content-Type' : 'application/json' },
+			});
+
+			const data = await res.json();
+
+			if (!res.ok || !data.isValidImage){
+				return false;
+			}
+
+			return true;
 		} catch (error) {
 			if (error instanceof z.ZodError){
-				console.log(error.issues);
+				console.error(error.issues);
+				return false;
 			}
-			console.log(error);
-			return false;	
+
+			console.error(error);
+			return false;
 		}
 	}),
 });

@@ -7,6 +7,7 @@ import { Button } from './ui/button'
 import { Author, Startup } from '@/sanity/types'
 
 export type StartupTypeCard = Omit<Startup, "author"> & {author?: Author};
+
 const StartupCard = ({ post }: {post: StartupTypeCard}) => {
 	const { _createdAt, views, author, title, category, description, _id, image} = post;
 
@@ -34,14 +35,14 @@ const StartupCard = ({ post }: {post: StartupTypeCard}) => {
 					</Link>
 				</div>
 				<Link href={`/user/${author?._id}`}>
-					<Image src="https://placehold.co/600x400" alt='placeholder' width={48} height={48} className='rounded-full' />	
+					<Image src={post.author?.image || ""} alt='placeholder' width={40} height={40} className='rounded-full' />	
 				</Link>
 			</div>
 			<Link href={`/startup/${_id}`}>
 				<p className='startup-card_desc'>
 					{description}
 				</p>
-				<img src={image} alt='placeholder' className='startup-card_img' />	
+				<Image src={image || ""} alt='startup-card_img' width={400} height={200} className='startup-card_img' />	
 			</Link>
 
 			<div className='flex-between gap-3 mt-5'>

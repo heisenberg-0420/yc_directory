@@ -10,6 +10,7 @@ import { formSchema } from '@/lib/validation';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { createPitch } from '@/lib/actions';
 
 const StartupForm = () => {
 	const { toast } = useToast();
@@ -18,7 +19,7 @@ const StartupForm = () => {
 	const [errors, setErrors] = useState <Record <string, string>> ({});
 	const [pitch, setPitch] = useState("");
 
-	const handleFormSubmit = async (prevState: any, formData: FormData, e: any) => {
+	const handleFormSubmit = async (prevState: any, formData: FormData) => {
 		try {
 			const formValues = {
 				title: formData.get("title") as string,
@@ -28,25 +29,20 @@ const StartupForm = () => {
 				link: formData.get("link") as string,
 			};
 
-			console.log("formvalue: ", formValues);
-			console.log("link type: ", typeof(formValues.link), "pitch type: ", typeof(formValues.pitch));
-			
 			await formSchema.parseAsync(formValues);
-			console.log(formValues);
+			
+			const result = await createPitch(prevState, formData, pitch);
 
-			// const result = await createIdea(prevState, FormData, pitch);
-			// console.log(result);
-
-			// if(result.status == 'SUCCESS'){
-			// 	toast({
-			// 		title: 'Success',
-			// 		description: 'Your Startup Pitch has been created successfully',
-			// 	});
+			if(result.status === 'SUCCESS'){
+				toast({
+					title: 'Success',
+					description: 'Your Startup Pitch has been created successfully',
+				});
 				
-			// 	router.push(`/startup/${result.id}`);
-			// };
+				router.push(`/startup/${result._id}`);
+			};
 
-			// return result;
+			return result;
 		} catch (error) {
 			if(error instanceof z.ZodError){
 				const fieldErrors = error.flatten().fieldErrors;
@@ -54,18 +50,18 @@ const StartupForm = () => {
 				setErrors(fieldErrors as unknown as Record<string,string>);
 				
 				toast({
+					variant: 'destructive',
 					title: 'Error',
 					description: 'Please check your inputs and try again',
-					variant: "destructive"
 				});
 
 				return { ...prevState, error: "Validation failed", status: "ERROR"};
 			};
 			
 			toast({
+				variant: 'destructive',
 				title: 'Error',
 				description: 'Please check your inputs and try again',
-				variant: "destructive"
 			});
 
 			return {
@@ -87,7 +83,7 @@ const StartupForm = () => {
 			<label htmlFor='title' className='startup-form_label'>Title</label>
 			<Input id="title" name="title" className='startup-form_input' placeholder='Startup Title' required />
 
-			{errors.title && <p className='startup-form_error'>{errors.tite}</p>}
+			{errors.title && <p className='startup-form_error'>{errors.title}</p>}
 
 		</div>
 		
@@ -101,7 +97,7 @@ const StartupForm = () => {
 
 		<div>
 			<label htmlFor='category' className='startup-form_label'>Category</label>
-			<Input id="category" name="category" className='startup-form_input' placeholder='Startup Category (Tech, Health, Education...' 
+			<Input id="category" name="category" className='startup-form_input' placeholder='Startup Category (Tech, Health, Education...)' 
 				required 
 			/>
 
@@ -129,7 +125,7 @@ const StartupForm = () => {
 				onChange={(value) => setPitch(value as string)}	
 			/>
 
-			{errors.link && <p className='startup-form_error'>{errors.link}</p>}
+			{errors.pitch && <p className='startup-form_error'>{errors.pitch}</p>}
 		</div>
 
 		<Button type='submit' className='startup-form_btn text-white' disabled={isPending}>
